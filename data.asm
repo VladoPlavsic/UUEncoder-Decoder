@@ -1,6 +1,11 @@
-; BUFFER SIZES
-inBuffSize = 4096
-outBuffSize = inBuffSize
+; BUFFER SIZES (Must be divisible by 3 and 4!)
+; dec / enc
+; inBuffSize = 27648 ; ~21 sec ~= 6912 => optimal buffer size ~ 6912
+inBuffSize = 6912 ; ~21 sec / 21 sec
+; inBuffSize = 768 ; ~27 sec / 27 sec
+; inBuffSize = 48 ; ~1 min / 52 sec
+
+outBuffSize_ = inBuffSize + (inBuffSize / 3)
 
 ; File operation messages
 OPEN_     db 'Open:', 0Ah, '$'
@@ -9,6 +14,8 @@ WRITE_    db 'Write: ',0Ah, '$'
 CLOSE_    db 'Close:', 0Ah, '$'
 CREATE_   db 'Create:', 0Ah, '$'
 POSITION_ db 'Position:', 0Ah, '$'
+BIN_TO_UUE_ db 'Binary-to-UUE:', 0Ah, '$'
+UUE_TO_BIN_ db 'UUE-to-Binary:', 0Ah, '$'
 
 ; Error messages
 FILE_NOT_FOUND_MSG db 'File not found',0Ah,'$'
