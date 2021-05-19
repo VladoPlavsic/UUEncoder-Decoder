@@ -3,20 +3,20 @@ INCLUDE macros.asm
 
 ; 0 - uue to binary
 ; 1 - binary to uue
-MODE EQU 0
-
 .model small
 .stack 100h
 .data
     INCLUDE data.asm
-    inFile db 'inF.uue',0
-    outFile db 'outF.txt',0
+    MODE dw ?
+    inFile db 12 dup(?),'$',0
+    outFile db 12 dup(?),'$',0
     inHnd  dw ?
     outHnd dw ?
     outBuffSize dw outBuffSize_
     inBuffer db inBuffSize dup (?)
     outBuffer db outBuffSize_ dup (?)
     count db ?
+
 .code
 start:
     nullRegs
@@ -31,6 +31,53 @@ start:
     INCLUDE convert.asm
 
 start_program:
+    ; get files from cmd args
+    mov ah, 62h
+    int 21h
+    ; bx containing address of PSP
+    push ds
+    push si
+    mov ds, bx
+    xor bx, bx
+    mov bl, ds:[80h]
+    cmp bl, 07Eh
+    jle parse_cmd
+    jmp end_program
+
+parse_cmd:
+    mov byte ptr ds:[bx+81h], ' '
+    mov si, 82h
+    mov di, offset inFile
+    
+    xor ax, ax
+    read_mode_:
+        lodsb
+        sub ax, 30h
+        mov es:[MODE], ax
+        inc si
+        cmp al, 0
+        je parse_in_file
+        cmp al, 1
+        je parse_in_file
+        jmp exit
+
+    parse_in_file:
+        lodsb
+        stosb
+        cmp al, ' '
+        jne parse_in_file
+
+    mov di, offset outFile
+
+    parse_out_file:
+        lodsb
+        stosb
+        cmp al, ' '
+        jne parse_out_file
+
+    pop si
+    pop ds
+
     saveRegs
     ; create out file
     lea dx, outFile
@@ -138,7 +185,7 @@ end_program:
 
     ; return initial register state
     getRegs
-
+exit:
     mov ax, 4C00h
     int 21h
 
